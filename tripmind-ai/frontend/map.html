@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit AI — Route Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <div class="flex items-center gap-4" style="flex:1;max-width:400px;margin:0 32px;">
+      <div style="flex:1;position:relative;">
+        <input class="form-input" type="text" placeholder="🔍 Search attractions..." style="padding-left:14px;">
+      </div>
+    </div>
+    <div class="navbar-actions">
+      <button class="btn-icon">🔔</button>
+      <div style="width:36px;height:36px;border-radius:50%;background:#F59E0B;"></div>
+    </div>
+  </nav>
+
+  <!-- Map Page Layout -->
+  <div class="map-page">
+    <!-- Left Sidebar -->
+    <div class="map-sidebar">
+      <div class="route-header mb-3">
+        <div class="flex justify-between items-center">
+          <h2>Today's Route</h2>
+          <span class="badge badge-blue">DAY 1</span>
+        </div>
+        <p class="route-meta">Paris, France • Tuesday, June 12</p>
+      </div>
+
+      <!-- Route stops -->
+      <div>
+        <!-- Start -->
+        <div class="route-stop">
+          <div class="stop-marker start">🏠</div>
+          <div class="stop-info">
+            <h4>Hotel de Ville</h4>
+            <p>Departure: 09:00 AM</p>
+          </div>
+        </div>
+        <div class="route-connector">🚗 15 min drive • 2.4 km</div>
+
+        <!-- Stop 1 -->
+        <div class="route-stop">
+          <div class="stop-marker numbered">1</div>
+          <div class="stop-info">
+            <h4>Central Museum</h4>
+            <p>Stay: 2h 30m</p>
+          </div>
+        </div>
+        <div class="route-connector">🚗 25 min drive • 4.1 km</div>
+
+        <!-- Stop 2 -->
+        <div class="route-stop">
+          <div class="stop-marker numbered">2</div>
+          <div class="stop-info">
+            <h4>Botanical Garden</h4>
+            <p>Stay: 1h 00m</p>
+          </div>
+        </div>
+        <div class="route-connector">🚶 10 min walk • 0.8 km</div>
+
+        <!-- Stop 3 -->
+        <div class="route-stop">
+          <div class="stop-marker numbered">3</div>
+          <div class="stop-info">
+            <h4>Riverside Cafe</h4>
+            <p>Stay: 45m (Lunch)</p>
+          </div>
+        </div>
+        <div class="route-connector">🚌 20 min bus • 3.8 km</div>
+
+        <!-- Stop 4 -->
+        <div class="route-stop">
+          <div class="stop-marker numbered">4</div>
+          <div class="stop-info">
+            <h4>Historic Square</h4>
+            <p>Final destination</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route Summary -->
+      <div class="route-summary">
+        <div class="route-summary-item">
+          <div class="summary-label">Distance</div>
+          <div class="summary-value">12.5 km</div>
+        </div>
+        <div class="route-summary-item">
+          <div class="summary-label">Time</div>
+          <div class="summary-value">3h 45m</div>
+        </div>
+        <div class="route-summary-item">
+          <div class="summary-label">Est. Cost</div>
+          <div class="summary-value">$45.00</div>
+        </div>
+      </div>
+
+      <!-- Transport Modes -->
+      <div class="transport-modes">
+        <button class="transport-btn active">🚗 Drive</button>
+        <button class="transport-btn">🚌 Bus</button>
+        <button class="transport-btn">🚶 Walk</button>
+        <button class="transport-btn">🤖 Auto</button>
+      </div>
+
+      <a href="https://maps.google.com" target="_blank" class="btn btn-primary btn-block mt-3">🗺️ Open in Google Maps</a>
+    </div>
+
+    <!-- Map Container -->
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/agent.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/pdf.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Init map centered on Paris
+      MapModule.init('map', [48.8566, 2.3522], 13);
+
+      // Demo stops
+      const stops = [
+        { lat: 48.8566, lng: 2.3522, label: '🏠', name: 'Hotel de Ville', color: '#22C55E' },
+        { lat: 48.8606, lng: 2.3376, label: '1', name: 'Central Museum' },
+        { lat: 48.8462, lng: 2.3559, label: '2', name: 'Botanical Garden' },
+        { lat: 48.8400, lng: 2.3650, label: '3', name: 'Riverside Cafe' },
+        { lat: 48.8438, lng: 2.3935, label: '4', name: 'Historic Square' },
+      ];
+
+      const coords = [];
+      stops.forEach(s => {
+        MapModule.addMarker(s.lat, s.lng, s.label, s.name, s.color || '#2563EB');
+        coords.push([s.lat, s.lng]);
+      });
+      MapModule.drawRoute(coords);
+
+      // Transport mode buttons
+      document.querySelectorAll('.transport-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.transport-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

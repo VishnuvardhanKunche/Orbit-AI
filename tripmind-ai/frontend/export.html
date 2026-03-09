@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit AI — Export Your Trip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <div class="navbar-actions">
+      <button class="btn-icon" onclick="navigateTo('dashboard.html')">✕</button>
+    </div>
+  </nav>
+
+  <!-- Export Page -->
+  <div class="export-page">
+    <h1>Export Your Trip</h1>
+    <p class="subtitle">Your perfect itinerary is ready. Choose how you'd like to take it with you.</p>
+
+    <div class="export-grid">
+      <!-- Left: Itinerary Preview -->
+      <div>
+        <h3 class="mb-2">Itinerary Preview</h3>
+        <div class="itinerary-preview-card">
+          <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80" alt="Tokyo skyline">
+          <div class="itinerary-preview-body">
+            <div class="trip-tags">
+              <span class="trip-tag primary">7-DAY TRIP</span>
+              <span class="trip-tag neutral">JAPAN</span>
+            </div>
+            <h3>Tokyo & Beyond</h3>
+            <div class="mt-2">
+              <div class="export-day-item">
+                <div class="export-day-dot"></div>
+                <div>
+                  <strong>Day 1: Arrival & Shibuya</strong>
+                  <div class="text-xs text-muted">Shibuya Crossing, Meiji Jingu Shrine</div>
+                </div>
+              </div>
+              <div class="export-day-item">
+                <div class="export-day-dot"></div>
+                <div>
+                  <strong>Day 2: Historic Asakusa</strong>
+                  <div class="text-xs text-muted">Senso-ji Temple, Tokyo Skytree</div>
+                </div>
+              </div>
+              <div class="export-day-item">
+                <div class="export-day-dot" style="background:var(--primary-light);"></div>
+                <div>
+                  <strong>Day 3: Mount Fuji Day Trip</strong>
+                  <div class="text-xs text-muted">Lake Kawaguchiko, Chureito Pagoda</div>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm btn-block mt-2">View Full Details</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Export Options -->
+      <div>
+        <h3 class="mb-2">Export Options</h3>
+        <div class="export-options">
+          <!-- Google Calendar -->
+          <div class="export-option-card">
+            <div class="export-option-icon calendar">📅</div>
+            <h4>Google Calendar</h4>
+            <p>Automatically sync each daily activity to your Google Calendar.</p>
+            <button class="btn btn-success btn-sm btn-block">Connect & Sync</button>
+          </div>
+
+          <!-- Email Itinerary -->
+          <div class="export-option-card">
+            <div class="export-option-icon email">✉️</div>
+            <h4>Email Itinerary</h4>
+            <p>Send a beautifully formatted version to your inbox.</p>
+            <input class="form-input mb-1" type="email" id="export-email" placeholder="Enter your email">
+            <button class="btn btn-dark btn-sm btn-block" onclick="handleEmailExport()">Send Now</button>
+          </div>
+
+          <!-- PDF Download -->
+          <div class="export-option-card">
+            <div class="export-option-icon pdf">📄</div>
+            <h4>PDF Download</h4>
+            <p>Get an offline-ready PDF with maps and important reservation details.</p>
+            <button class="btn btn-secondary btn-sm btn-block" onclick="handlePDFDownload()">⬇ Download PDF</button>
+          </div>
+
+          <!-- Share -->
+          <div class="export-option-card">
+            <div class="export-option-icon share">🔗</div>
+            <h4>Share with Buddies</h4>
+            <p>Let your friends see the plan and suggest changes.</p>
+            <div class="share-icons">
+              <button class="share-icon-btn" title="Copy link">🔗</button>
+              <button class="share-icon-btn" title="Message">💬</button>
+              <button class="share-icon-btn" title="WhatsApp">🌐</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Over -->
+    <div class="start-over">
+      <a href="index.html">🔄 Start Over & Plan a New Trip</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer" style="justify-content:center;">
+    <span>© 2024 Orbit AI. All rights reserved.</span>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/agent.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/pdf.js"></script>
+  <script>
+    function handleEmailExport() {
+      const email = document.getElementById('export-email').value;
+      if (!email) { showToast('Please enter an email address', 'error'); return; }
+      const tripData = loadTripData() || { destination: 'Tokyo, Japan', dates: 'Nov 15-22' };
+      EmailModule.init();
+      EmailModule.sendItinerary(email, tripData);
+    }
+
+    function handlePDFDownload() {
+      const tripData = loadTripData() || {
+        destination: 'Tokyo & Beyond',
+        dates: 'Nov 15-22',
+        travelers: '2 Adults',
+        budget: '₹50,000',
+        itinerary: {
+          days: [
+            { title: 'Day 1: Arrival & Shibuya', activities: [
+              { time: '2:00 PM', name: 'Shibuya Crossing', description: 'Experience the world\'s busiest intersection.' },
+              { time: '4:00 PM', name: 'Meiji Jingu Shrine', description: 'Visit the serene shrine in Harajuku.' },
+            ]},
+            { title: 'Day 2: Historic Asakusa', activities: [
+              { time: '8:00 AM', name: 'Senso-ji Temple', description: 'Explore Tokyo\'s oldest temple.' },
+              { time: '12:00 PM', name: 'Tokyo Skytree', description: 'Panoramic views from 634m high.' },
+            ]},
+            { title: 'Day 3: Mount Fuji Day Trip', activities: [
+              { time: '7:00 AM', name: 'Lake Kawaguchiko', description: 'Stunning views of Mount Fuji.' },
+              { time: '2:00 PM', name: 'Chureito Pagoda', description: 'The iconic pagoda with Fuji backdrop.' },
+            ]},
+          ]
+        }
+      };
+      PDFModule.generatePDF(tripData);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit AI — Trip Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <div class="navbar-actions">
+      <a href="#" class="btn btn-primary btn-sm">Profile</a>
+      <div style="width:36px;height:36px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;">👤</div>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-bottom:80px;">
+
+    <!-- Trip Header Bar -->
+    <div class="trip-header mt-3">
+      <div class="trip-header-info">
+        <div class="trip-header-item">
+          <div class="form-label">Destination</div>
+          <div class="font-semibold" id="dash-dest">Loading...</div>
+        </div>
+        <div class="trip-header-item">
+          <div class="form-label">Dates</div>
+          <div class="font-semibold" id="dash-dates">...</div>
+        </div>
+        <div class="trip-header-item">
+          <div class="form-label">Travelers</div>
+          <div class="font-semibold" id="dash-travelers">...</div>
+        </div>
+        <div class="trip-header-item">
+          <div class="form-label">Budget</div>
+          <div class="font-semibold" id="dash-budget">...</div>
+        </div>
+      </div>
+      <a href="index.html" class="btn btn-outline btn-sm">Modify Trip</a>
+    </div>
+
+    <!-- Weather Forecast -->
+    <h3 class="section-title">Weather Forecast</h3>
+    <div class="weather-cards" id="weather-container">
+      <!-- Dynamically injected -->
+    </div>
+
+    <!-- Main Grid: Attractions + Sidebar -->
+    <div class="dashboard-grid">
+      <!-- Left: Top Attractions -->
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="section-title mb-0" style="margin-bottom:0">Top Attractions</h3>
+          <a href="#" class="text-primary-color font-semibold text-sm">View All</a>
+        </div>
+        <div id="attractions-container">
+          <!-- Dynamically injected -->
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div>
+        <!-- Trip Overview -->
+        <div class="card-flat mb-3">
+          <h4>Trip Overview</h4>
+          <div class="trip-overview mt-2">
+            <div class="trip-overview-item">
+              <div class="overview-icon">🌍</div>
+              <div class="overview-label">Location Data</div>
+              <div class="overview-value text-xs" id="o-dest">Loading...</div>
+            </div>
+            <div class="trip-overview-item">
+              <div class="overview-icon">📅</div>
+              <div class="overview-label">Best Time</div>
+              <div class="overview-value" id="o-dates">Loading...</div>
+            </div>
+            <div class="trip-overview-item">
+              <div class="overview-icon">💱</div>
+              <div class="overview-label">Currency</div>
+              <div class="overview-value">INR (₹)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hotel Recommendations -->
+    <h3 class="section-title mt-4">Hotel Recommendations</h3>
+    <div class="grid-4" id="hotel-container">
+      <!-- Dynamically injected -->
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a class="bottom-nav-item" href="map.html"><span>🗺️</span><span>Map View</span></a>
+    <a class="bottom-nav-item" href="itinerary.html"><span>📅</span><span>Itinerary</span></a>
+    <a class="bottom-nav-item" href="chat.html"><div class="bottom-nav-center">🤖</div><span>AI Chat</span></a>
+    <a class="bottom-nav-item active" href="dashboard.html"><span>🔍</span><span>Explore</span></a>
+    <a class="bottom-nav-item" href="export.html"><span>📤</span><span>Export</span></a>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load user input data
+      const tripData = loadTripData() || {};
+      const it = JSON.parse(localStorage.getItem('orbit_itinerary') || "null");
+      
+      if (!it) {
+          alert('No itinerary generated. Please plan a trip first.');
+          window.location.href = 'index.html';
+          return;
+      }
+
+      // Populate header
+      document.getElementById('dash-dest').textContent = tripData.destination || it.destination || 'Unknown';
+      document.getElementById('dash-dates').textContent = (tripData.startDate && tripData.endDate) ? `${formatDate(tripData.startDate)} - ${formatDate(tripData.endDate)}` : 'Dates TBD';
+      document.getElementById('dash-travelers').textContent = tripData.travelers ? `${tripData.travelers} Travelers` : '2 Travelers';
+      document.getElementById('dash-budget').textContent = formatCurrency(tripData.budget || 50000, 'INR');
+
+      document.getElementById('o-dest').textContent = it.destination;
+      document.getElementById('o-dates').textContent = `${it.total_days || (it.itinerary ? it.itinerary.length : 1)} Days`;
+
+      // Render weather
+      const weatherContainer = document.getElementById('weather-container');
+      weatherContainer.innerHTML = '';
+      if(it.weather && it.weather.length > 0) {
+        it.weather.forEach(w => {
+          let icon = w.icon || '☀️';
+          if(w.condition.toLowerCase().includes('rain')) icon = '🌧️';
+          else if(w.condition.toLowerCase().includes('cloud')) icon = '⛅';
+          weatherContainer.innerHTML += `
+            <div class="weather-card">
+              <div class="weather-icon">${icon}</div>
+              <div>
+                <div class="weather-date">${w.day}</div>
+                <div class="weather-temp">${Math.round(w.temp_high)}°C / ${Math.round(w.temp_low)}°C ${w.condition}</div>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+         weatherContainer.innerHTML = '<p class="text-sm text-muted">No weather data available.</p>';
+      }
+
+      // Render attractions
+      const attractionsContainer = document.getElementById('attractions-container');
+      attractionsContainer.innerHTML = '';
+      if(it.attractions && it.attractions.length > 0) {
+        it.attractions.forEach(a => {
+          attractionsContainer.innerHTML += `
+            <div class="attraction-item">
+              <div class="attraction-icon" style="min-width:60px;height:60px;background:#E2E8F0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;">🏛️</div>
+              <div class="attraction-info ml-3" style="flex:1">
+                <h4>${a.name}</h4>
+                <div class="attraction-meta">${a.category || 'Sightseeing'}</div>
+                <p class="text-xs text-secondary mt-1">${a.description}</p>
+              </div>
+              <div class="attraction-rating ml-2">⭐ ${a.rating || '4.5'}</div>
+            </div>
+          `;
+        });
+      }
+
+      // Render hotels
+      const hotelContainer = document.getElementById('hotel-container');
+      hotelContainer.innerHTML = '';
+      if(it.hotels && it.hotels.length > 0) {
+        it.hotels.forEach(h => {
+          const tagsHtml = (h.amenities || []).slice(0, 3).map(tag => `<span class="hotel-tag">${tag}</span>`).join('');
+          hotelContainer.innerHTML += `
+            <div class="hotel-card" style="box-shadow:var(--shadow-md);border-radius:var(--radius-lg);overflow:hidden;">
+              <div class="hotel-icon" style="height:140px;background:#93C5FD;display:flex;align-items:center;justify-content:center;font-size:40px;">🏨</div>
+              <div class="hotel-card-body" style="padding:16px;">
+                <div class="flex justify-between items-center mb-1">
+                  <h4 style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.name}</h4>
+                  <span class="hotel-price font-bold text-primary-color ml-2">${formatCurrency(h.price_per_night, 'INR')}</span>
+                </div>
+                <div class="hotel-tags flex flex-wrap gap-1 mb-2">${tagsHtml}</div>
+                <div class="text-xs text-muted mb-3">⭐ ${h.rating || '4.0'} / 5.0</div>
+                <button class="btn btn-primary btn-sm btn-block">Book Now</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+    });
+  </script>
+</body>
+</html>

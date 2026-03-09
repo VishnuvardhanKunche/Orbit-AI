@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit AI — Daily Itinerary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <div class="navbar-actions">
+      <button class="btn-icon">📅</button>
+      <button class="btn-icon">📤</button>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Edit Trip</a>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-top:32px;padding-bottom:48px;">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-3">
+      <div class="itinerary-header">
+        <h1 id="it-title">Loading...</h1>
+        <p class="subtitle" id="it-subtitle">...</p>
+      </div>
+      <div class="weather-badge">
+        <span>☀️</span>
+        <div>
+          <div class="text-xs text-muted">Weather Today</div>
+          <div class="font-semibold" id="it-weather">N/A</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day Tabs -->
+    <div class="day-tabs" id="day-tabs-container">
+      <!-- Dynamically generated -->
+    </div>
+
+    <!-- Itinerary Grid -->
+    <div class="itinerary-grid">
+      <!-- Left: Timeline -->
+      <div id="timeline-container">
+        <!-- Dynamically generated -->
+      </div>
+
+      <!-- Right Sidebar -->
+      <div>
+        <!-- Daily Expense -->
+        <div class="expense-card">
+          <div class="flex items-center gap-4 mb-2">
+            <span>💰</span>
+            <h4>Daily Expense Summary</h4>
+          </div>
+          <div class="expense-row"><span>Total</span><span id="it-budget">₹0</span></div>
+          <div class="text-xs text-muted mt-1" style="text-align:right;">Estimated daily average</div>
+        </div>
+
+        <!-- Route Map Widget -->
+        <div class="map-widget">
+          <h4 class="text-primary-color mb-1">Today's Route Map</h4>
+          <div class="map-placeholder" id="mini-map">
+             <div style="background:#E2E8F0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">🗺️ Map Unavailable</div>
+          </div>
+          <a href="map.html" class="btn btn-outline btn-sm btn-block mt-1">Open Interactive Map</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI © 2024</span>
+    </div>
+    <div class="footer-links">
+      <a href="#">Help Center</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tripData = loadTripData() || {};
+      const it = JSON.parse(localStorage.getItem('orbit_itinerary') || "null");
+      
+      if (!it) {
+          alert('No itinerary generated. Please plan a trip first.');
+          window.location.href = 'index.html';
+          return;
+      }
+
+      // Populate Header
+      document.getElementById('it-title').textContent = `${it.destination} Exploration`;
+      document.getElementById('it-subtitle').textContent = (tripData.startDate && tripData.endDate) ? `${formatDate(tripData.startDate)} - ${formatDate(tripData.endDate)}` : 'AI Generated Route';
+      
+      if(it.weather && it.weather.length > 0) {
+         document.getElementById('it-weather').textContent = `${Math.round(it.weather[0].temp_high)}°C`;
+      }
+
+      // Average Daily Budget
+      const daysCount = it.itinerary ? it.itinerary.length : 1;
+      const budget = tripData.budget || 50000;
+      document.getElementById('it-budget').textContent = formatCurrency(Math.floor(budget / daysCount), 'INR');
+
+      // Generate Day Tabs
+      const tabsContainer = document.getElementById('day-tabs-container');
+      const timelineContainer = document.getElementById('timeline-container');
+      tabsContainer.innerHTML = '';
+      
+      let currentDayIndex = 0;
+
+      function renderDay(index) {
+          const day = it.itinerary[index];
+          timelineContainer.innerHTML = '';
+          if (!day || !day.activities) {
+              timelineContainer.innerHTML = '<p>No activities scheduled.</p>';
+              return;
+          }
+
+          let html = '';
+          day.activities.forEach((act, actIdx) => {
+              const bg = actIdx % 2 === 0 ? 'var(--primary)' : 'var(--text-muted)';
+              const proTip = act.pro_tip ? `<div class="pro-tip"><strong>PRO TIP</strong> ${act.pro_tip}</div>` : '';
+              
+              html += `
+              <div class="time-section-label" style="margin-top:20px;">${act.time}</div>
+              <div class="timeline">
+                <div class="timeline-dot" style="background:${bg};"></div>
+                <div class="activity-card" style="margin-left:12px;">
+                  <div class="activity-card-body">
+                    <span class="activity-duration">${act.duration} | ${act.category || 'Activity'}</span>
+                    <h3>${act.name}</h3>
+                    <p class="text-sm text-secondary">${act.description}</p>
+                    ${proTip}
+                    <a class="directions-link" href="#">📍 Get Directions</a>
+                  </div>
+                </div>
+              </div>
+              `;
+          });
+          
+          html += `
+            <div class="day-nav" style="margin-top:30px;">
+              ${index > 0 ? `<a href="#" class="btn btn-secondary btn-sm" onclick="renderDay(${index-1})">← Prev</a>` : '<div></div>'}
+              ${index < it.itinerary.length - 1 ? `<a href="#" class="btn btn-primary btn-sm" onclick="renderDay(${index+1})">Next →</a>` : '<div></div>'}
+            </div>
+          `;
+          
+          timelineContainer.innerHTML = html;
+          
+          // Update Tab Active State
+          document.querySelectorAll('.day-tab').forEach((t, i) => {
+              if(i === index) t.classList.add('active');
+              else t.classList.remove('active');
+          });
+          window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+
+      // Create tabs
+      if(it.itinerary && it.itinerary.length > 0) {
+          it.itinerary.forEach((day, index) => {
+              const tab = document.createElement('div');
+              tab.className = `day-tab ${index === 0 ? 'active' : ''}`;
+              tab.innerHTML = `Day ${index + 1}<span class="day-date">${day.date || ''}</span>`;
+              tab.onclick = () => renderDay(index);
+              tabsContainer.appendChild(tab);
+          });
+          
+          // Initial render
+          renderDay(0);
+      } else {
+          timelineContainer.innerHTML = '<p>No itinerary data found.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit AI — Planning Your Trip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <span class="text-sm text-muted">Step <span id="step-num">3</span> of 4: Generating Itinerary</span>
+  </nav>
+
+  <!-- Loading Content -->
+  <div class="loading-page">
+    <div class="loading-card">
+      <div style="background:var(--bg-body);border-radius:var(--radius-md);padding:20px 24px;margin-bottom:20px;">
+        <div class="loading-icon">✈️</div>
+      </div>
+
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="flex justify-between text-xs mt-1">
+        <span class="text-primary-color font-bold">PROCESSING...</span>
+        <span class="text-muted" id="progress-pct">0%</span>
+      </div>
+
+      <h2 class="mt-3" id="loading-title">Planning your trip...</h2>
+      <p class="text-secondary text-sm">Our AI is working on it!</p>
+
+      <div class="loading-steps mt-3" id="loading-steps">
+        <div class="loading-step pending" data-step="weather">
+          <div class="step-icon">○</div>
+          <span>Fetching live weather</span>
+        </div>
+        <div class="loading-step pending" data-step="attractions">
+          <div class="step-icon">○</div>
+          <span>Finding top attractions</span>
+        </div>
+        <div class="loading-step pending" data-step="hotels">
+          <div class="step-icon">○</div>
+          <span>Searching budget hotels</span>
+        </div>
+        <div class="loading-step pending" data-step="itinerary">
+          <div class="step-icon">○</div>
+          <span>Building your itinerary</span>
+        </div>
+      </div>
+
+      <p class="loading-quote">"The world is a book and those who do not travel read only one page."</p>
+      <p class="loading-time">THIS USUALLY TAKES 30-60 SECONDS</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer" style="position:fixed;bottom:0;left:0;width:100%;justify-content:center;">
+    <span>© 2024 Orbit AI. All rights reserved.</span>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/agent.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/pdf.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tripData = loadTripData();
+      const dest = tripData ? tripData.destination : 'your destination';
+      document.getElementById('loading-title').textContent = `Planning your trip to ${dest}...`;
+
+      const steps = document.querySelectorAll('.loading-step');
+      const fill = document.getElementById('progress-fill');
+      const pct = document.getElementById('progress-pct');
+      let current = 0;
+      const pcts = [25, 50, 75, 100];
+
+      function advanceStep() {
+        if (current > 0) {
+          steps[current - 1].classList.remove('active');
+          steps[current - 1].classList.add('done');
+          steps[current - 1].querySelector('.step-icon').textContent = '✓';
+        }
+        if (current < steps.length) {
+          steps[current].classList.remove('pending');
+          steps[current].classList.add('active');
+          fill.style.width = pcts[current] + '%';
+          pct.textContent = pcts[current] + '%';
+          current++;
+          // auto-advance animation but dont redirect here
+          if (current < steps.length) setTimeout(advanceStep, 8000); 
+        }
+      }
+    // Handle the real API Plan call
+    async function startPlanning(tripData) {
+      try {
+        const dest = tripData.destination || 'your destination';
+        
+        // Let the animation start
+        setTimeout(advanceStep, 600);
+        
+        // Wait for the AI
+        const responseData = await Agent.planTrip(
+          tripData.destination,
+          tripData.startDate,
+          tripData.endDate,
+          tripData.travelers,
+          tripData.budget,
+          tripData.tripType || 'General'
+        );
+        
+        console.log("AI Trip Planned:", responseData);
+        // Save the detailed itinerary to local storage
+        localStorage.setItem('orbit_itinerary', JSON.stringify(responseData));
+        
+        // Fast forward the progress bar if it's lagging
+        current = steps.length - 1;
+        advanceStep();
+        
+        // Final redirect
+        setTimeout(() => { navigateTo('dashboard.html'); }, 1500);
+        
+      } catch (err) {
+        console.error(err);
+        alert("Failed to plan trip. Check the backend server.");
+        fill.style.background = '#EF4444'; // Red error
+      }
+    }
+    
+    if (tripData) {
+        startPlanning(tripData);
+    } else {
+        alert("No trip data found! Returning to home.");
+        window.location.href = 'index.html';
+    }
+    });
+  </script>
+</body>
+</html>

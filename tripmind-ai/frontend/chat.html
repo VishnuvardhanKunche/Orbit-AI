@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit AI — AI Chat Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <div class="navbar-actions">
+      <button class="btn-icon">🗺️</button>
+      <button class="btn-icon">⚙️</button>
+    </div>
+  </nav>
+
+  <!-- Chat Layout -->
+  <div class="chat-page">
+    <!-- Left Sidebar -->
+    <div class="chat-sidebar">
+      <div class="trip-label">CURRENT TRIP</div>
+      <div class="trip-name" id="sidebar-trip-name">Paris, France</div>
+      <div class="trip-dates" id="sidebar-trip-dates">Oct 12 - Oct 15, 2023</div>
+
+      <div class="sidebar-nav-label">ITINERARY</div>
+      <div class="sidebar-nav-item active">📅 Daily Schedule</div>
+      <div class="sidebar-nav-item">📍 Saved Places</div>
+      <div class="sidebar-nav-item">✈️ Flight Details</div>
+      <div class="sidebar-nav-item">🏨 Accommodations</div>
+
+      <!-- Mini Map -->
+      <div style="margin-top:auto;padding-top:20px;">
+        <div class="map-widget" style="padding:12px;">
+          <div class="map-placeholder" style="height:80px;"></div>
+          <div class="text-xs font-semibold mt-1">Live Map View</div>
+          <div class="text-xs text-muted">Explore your stops</div>
+          <a href="map.html" class="text-primary-color text-xs font-semibold">Open Interactive Map</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main">
+      <div class="chat-messages" id="chat-messages">
+        <!-- AI Welcome Message -->
+        <div class="chat-bubble ai">
+          <div class="bubble-avatar">🤖</div>
+          <div>
+            <div class="bubble-content">
+              <p>Hi there! I'm Orbit, your personal travel assistant. Ask me anything about your trip!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggestions -->
+      <div class="quick-suggestions" id="quick-suggestions">
+        <!-- Dynamically injected -->
+      </div>
+
+      <!-- Chat Input -->
+      <div class="chat-input-bar">
+        <div class="chat-input-wrap">
+          <input type="text" id="chat-input" placeholder="Ask Orbit about your journey..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+          <button class="btn-icon" style="border:none;background:none;">🎤</button>
+          <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+        </div>
+        <p class="chat-disclaimer">Orbit AI can make mistakes. Verify important travel details.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/agent.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/pdf.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Chat.init('#chat-messages', '#chat-input');
+
+      // Dynamic Quick Suggestions
+      const tripData = loadTripData() || {};
+      const dest = (tripData.destination || '').toLowerCase();
+      
+      let chips = [];
+      if (dest.includes('goa')) {
+        chips = [
+          { q: 'Best time to visit Goa?', icon: '🏖️' },
+          { q: 'What is the itinerary for Goa?', icon: '📅' },
+          { q: 'Top water sports in Goa?', icon: '🏄‍♂️' },
+          { q: 'Best seafood in Goa?', icon: '🦀' }
+        ];
+      } else if (dest.includes('tirupathi')) {
+        chips = [
+          { q: 'How to book Tirupathi darshan?', icon: '🛕' },
+          { q: 'What is the itinerary for Tirupathi?', icon: '📅' },
+          { q: 'How to reach Tirumala?', icon: '🚌' },
+          { q: 'Is mobile phone allowed inside?', icon: '📱' }
+        ];
+      } else if (dest.includes('yanam')) {
+        chips = [
+          { q: 'What makes Yanam special?', icon: '🌴' },
+          { q: 'What is the itinerary for Yanam?', icon: '📅' },
+          { q: 'Best time to visit Coringa?', icon: '🦅' },
+          { q: 'Famous food in Yanam?', icon: '🍤' }
+        ];
+      } else if (dest.includes('kasi') || dest.includes('varanasi')) {
+        chips = [
+          { q: 'Which ghats to visit in Kasi?', icon: '🛶' },
+          { q: 'What is the itinerary for Kasi?', icon: '📅' },
+          { q: 'What time is the Ganga Aarti?', icon: '🪔' },
+          { q: 'Best street food in Varanasi?', icon: '🥣' }
+        ];
+      } else {
+        chips = [
+          { q: 'What are the top attractions?', icon: '🏛️' },
+          { q: 'Find vegetarian restaurants', icon: '🥗' },
+          { q: 'Budget-friendly options', icon: '💰' }
+        ];
+      }
+
+      const container = document.getElementById('quick-suggestions');
+      container.innerHTML = '';
+      chips.forEach(c => {
+        container.innerHTML += `<div class="suggestion-chip" onclick="quickSend('${c.q}')">${c.icon} ${c.q}</div>`;
+      });
+    });
+
+    function sendChatMessage() {
+      Chat.sendMessage();
+    }
+
+    function quickSend(text) {
+      document.getElementById('chat-input').value = text;
+      Chat.sendMessage();
+    }
+
+    // Sidebar nav
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.sidebar-nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

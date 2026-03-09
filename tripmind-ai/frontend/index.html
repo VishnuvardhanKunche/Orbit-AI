@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit AI — Plan Your Perfect Trip</title>
+  <meta name="description" content="AI-powered travel planner. Plan your perfect trip with personalized itineraries, live weather, and smart recommendations.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <div class="navbar-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="dashboard.html">Plan Trip</a>
+      <a href="itinerary.html">My Trips</a>
+      <a href="chat.html">About</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero" style="background-image: linear-gradient(180deg, rgba(15,30,60,0.55) 0%, rgba(37,99,235,0.7) 100%), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80'); background-size: cover; background-position: center;">
+    <div class="hero-content container">
+      <h1>Plan Your Perfect Trip<br>with AI</h1>
+      <p>Just tell us where you want to go. Our AI handles the rest.</p>
+
+      <form class="form-row" id="trip-form" novalidate>
+        <div class="form-group">
+          <label class="form-label">Destination</label>
+          <input class="form-input" type="text" id="destination" placeholder="📍 Where to?">
+          <div class="form-error" id="err-destination"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input class="form-input" type="date" id="start-date">
+          <div class="form-error" id="err-start-date"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Date</label>
+          <input class="form-input" type="date" id="end-date">
+          <div class="form-error" id="err-end-date"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Travelers</label>
+          <select class="form-input" id="travelers">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5+">5+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Budget</label>
+          <input class="form-input" type="number" id="budget" placeholder="₹ 50000" value="50000" min="1">
+          <div class="form-error" id="err-budget"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Plan My Trip ✨</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- What's Your Vibe -->
+  <section class="section container" id="vibes">
+    <h2 class="section-title">What's your vibe?</h2>
+    <div class="grid-5" id="vibe-grid">
+      <div class="vibe-card" data-type="Beach">
+        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80" alt="Beach">
+        <span>Beach</span>
+      </div>
+      <div class="vibe-card" data-type="Adventure">
+        <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80" alt="Adventure">
+        <span>Adventure</span>
+      </div>
+      <div class="vibe-card" data-type="Culture">
+        <img src="https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=400&q=80" alt="Culture">
+        <span>Culture</span>
+      </div>
+      <div class="vibe-card" data-type="Food">
+        <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80" alt="Food">
+        <span>Food</span>
+      </div>
+      <div class="vibe-card" data-type="Wellness">
+        <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400&q=80" alt="Wellness">
+        <span>Wellness</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section container text-center" id="features">
+    <h2 class="section-title">Travel Smarter, Not Harder</h2>
+    <p class="section-subtitle">Our AI engine works 24/7 to curate the best experiences specifically for your preferences and budget.</p>
+    <div class="grid-3">
+      <div class="feature-card">
+        <div class="feature-icon">🌤️</div>
+        <h4>Live Weather</h4>
+        <p>Real-time weather updates and packing suggestions based on your destination's forecast.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✨</div>
+        <h4>AI Itinerary</h4>
+        <p>Hour-by-hour planning that optimizes routes and suggests hidden gems only locals know.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏨</div>
+        <h4>Hotel Picks</h4>
+        <p>Curated stays ranging from boutique hostels to luxury villas, matched to your style.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="navbar-brand">
+      <div class="logo-icon">✈</div>
+      <span>Orbit AI</span>
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Support</a>
+      <a href="#">Contact</a>
+    </div>
+    <span>© 2024 Orbit AI. All rights reserved.</span>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/agent.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/pdf.js"></script>
+  <script>
+    // --- Selected trip type ---
+    let selectedTripType = '';
+
+    // ============================
+    // 1. Vibe Card Selection
+    // ============================
+    document.querySelectorAll('.vibe-card').forEach(card => {
+      card.addEventListener('click', () => {
+        // Deselect all
+        document.querySelectorAll('.vibe-card').forEach(c => c.classList.remove('active'));
+        // Select clicked
+        card.classList.add('active');
+        selectedTripType = card.dataset.type;
+      });
+    });
+
+    // ============================
+    // 2. Form Validation
+    // ============================
+    function showError(fieldId, message) {
+      const input = document.getElementById(fieldId);
+      const errEl = document.getElementById('err-' + fieldId);
+      if (input) input.classList.add('input-error');
+      if (errEl) { errEl.textContent = message; errEl.classList.add('visible'); }
+    }
+
+    function clearError(fieldId) {
+      const input = document.getElementById(fieldId);
+      const errEl = document.getElementById('err-' + fieldId);
+      if (input) input.classList.remove('input-error');
+      if (errEl) { errEl.textContent = ''; errEl.classList.remove('visible'); }
+    }
+
+    function clearAllErrors() {
+      ['destination', 'start-date', 'end-date', 'budget'].forEach(clearError);
+    }
+
+    function validateForm() {
+      clearAllErrors();
+      let valid = true;
+
+      // Destination
+      const dest = document.getElementById('destination').value.trim();
+      if (!dest) {
+        showError('destination', 'Destination is required');
+        valid = false;
+      }
+
+      // Start Date
+      const startVal = document.getElementById('start-date').value;
+      if (!startVal) {
+        showError('start-date', 'Start date is required');
+        valid = false;
+      }
+
+      // End Date
+      const endVal = document.getElementById('end-date').value;
+      if (!endVal) {
+        showError('end-date', 'End date is required');
+        valid = false;
+      }
+
+      // End date must be after start date
+      if (startVal && endVal) {
+        const s = new Date(startVal);
+        const e = new Date(endVal);
+        if (e <= s) {
+          showError('end-date', 'End date must be after start date');
+          valid = false;
+        }
+      }
+
+      // Budget
+      const budgetVal = parseFloat(document.getElementById('budget').value);
+      if (isNaN(budgetVal) || budgetVal <= 0) {
+        showError('budget', 'Budget must be greater than 0');
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    // ============================
+    // 3. Form Submit Handler
+    // ============================
+    document.getElementById('trip-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      if (!validateForm()) {
+        // Shake the form
+        this.classList.add('shake');
+        this.addEventListener('animationend', () => this.classList.remove('shake'), { once: true });
+        return;
+      }
+
+      // Save to localStorage
+      const tripData = {
+        destination: document.getElementById('destination').value.trim(),
+        startDate: document.getElementById('start-date').value,
+        endDate: document.getElementById('end-date').value,
+        travelers: document.getElementById('travelers').value,
+        budget: document.getElementById('budget').value,
+        tripType: selectedTripType,
+      };
+      saveTripData(tripData);
+
+      // Redirect to loading page
+      navigateTo('loading.html');
+    });
+
+    // Clear error on input change
+    ['destination', 'start-date', 'end-date', 'budget'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => clearError(id));
+        el.addEventListener('change', () => clearError(id));
+      }
+    });
+
+    // ============================
+    // 4. Smooth Scroll Nav Links
+    // ============================
+    document.querySelectorAll('.navbar-links a[href^="#"]').forEach(link => {
+      link.addEventListener('click', function (e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Smooth scroll for "Get Started" button → hero form
+    document.querySelectorAll('a[href="#hero"]').forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('hero').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('destination').focus();
+      });
+    });
+  </script>
+</body>
+</html>
